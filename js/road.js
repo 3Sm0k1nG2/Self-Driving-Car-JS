@@ -1,3 +1,5 @@
+import Border from "./border.js";
+import Point from "./point.js";
 import { lerp } from "./utils.js"
 
 class Road {
@@ -18,26 +20,14 @@ class Road {
         this.top = -infinity;
         this.bottom = infinity;
 
-        const leftLaneBorder = {
-            p1: {
-                x: this.left,
-                y: this.top
-            },
-            p2: {
-                x: this.left,
-                y: this.bottom
-            }
-        }
-        const rightLaneBorder = {
-            p1: {
-                x: this.right,
-                y: this.top
-            },
-            p2: {
-                x: this.right,
-                y: this.bottom
-            }
-        }
+        const leftLaneBorder = new Border(
+            new Point(this.left, this.top),
+            new Point(this.left, this.bottom)
+        );
+        const rightLaneBorder = new Border(
+            new Point(this.right, this.top),
+            new Point(this.right, this.bottom)
+        );
         this.borders = [
             leftLaneBorder,
             rightLaneBorder
@@ -77,6 +67,8 @@ class Road {
             ctx.setLineDash([20])
             ctx.stroke();
         }
+
+        ctx.setLineDash([]);
     }
 }
 

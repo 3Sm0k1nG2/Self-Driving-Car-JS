@@ -1,4 +1,6 @@
+import Border from "./border.js";
 import Controls from "./controls.js";
+import Sensor from "./sensor.js";
 
 class Car {
     /**
@@ -22,12 +24,16 @@ class Car {
         this.friction = 0.05;
         this.angle = 0;
 
+        this.sensor = new Sensor(this);
+
         this.braking = 0.2;
         this.drag = 0;
     }
 
-    update() {
+    /** @param {Border[]} roadBorders */
+    update(roadBorders) {
         this.#move();
+        this.sensor.update(roadBorders);
     }
 
     #move() {
@@ -82,6 +88,8 @@ class Car {
         ctx.fill();
 
         ctx.restore();
+
+        this.sensor.draw(ctx);
     }
 }
 

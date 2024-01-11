@@ -28,7 +28,7 @@ function animate(){
 }
 
 function updateTick() {
-    car.update();
+    car.update(road.borders);
 
     animate();
 
