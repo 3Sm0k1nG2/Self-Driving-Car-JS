@@ -19,7 +19,6 @@ function animate(){
 
     car.draw(context);
 
-    requestAnimationFrame(animate);
 }
 
 function updateTick() {
