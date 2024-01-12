@@ -4,30 +4,34 @@ import Point from "./point.js";
 import Polygon from "./polygon.js";
 import Sensor from "./sensor.js";
 import { getPolygonIntersection } from "./utils.js";
+import { CONTROL_TYPE_KEYS, CONTROL_TYPE_DUMMY } from "./consts.js";
 
 class Car {
     /**
-     * 
      * @param {number} x 
      * @param {number} y 
      * @param {number} width 
-     * @param {number} height 
+     * @param {number} height
+     * @param {CONTROL_TYPE_KEYS | CONTROL_TYPE_DUMMY} controlType
+     * @param {number} maxSpeed
      */
-    constructor(x, y, width, height) {
+    constructor(x, y, width, height, controlType, maxSpeed = 3) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
 
-        this.controls = new Controls();
+        this.controls = new Controls(controlType);
 
         this.speed = 0;
         this.acceleration = 0.2;
-        this.maxSpeed = 3;
+        this.maxSpeed = maxSpeed;
         this.friction = 0.05;
         this.angle = 0;
 
-        this.sensor = new Sensor(this);
+        if(controlType === CONTROL_TYPE_KEYS) {
+            this.sensor = new Sensor(this);
+        }
         this.polygon = new Polygon();
 
         this.isCrashed = false;
@@ -100,9 +104,9 @@ class Car {
         );
     }
 
-    /** @param {Border[]} roadBorders */
-    #assessDamage(roadBorders) {
-        for(let border of roadBorders) {
+    /** @param {Border[]} borders */
+    #assessDamage(borders) {
+        for(let border of borders) {
             if(
                 getPolygonIntersection(
                     this.polygon,
@@ -117,29 +121,33 @@ class Car {
         this.isCrashed = false;
     }
 
-    /** @param {Border[]} roadBorders */
-    update(roadBorders) {
+    /** @param {Border[]} borders */
+    update(borders) {
         if(!this.isCrashed){
             this.#move();
             this.#updatePolygon();
-            this.#assessDamage(roadBorders);
+            this.#assessDamage(borders);
         }
 
-        this.sensor.update(roadBorders);
+        this.sensor?.update(borders);
     }
 
     /** @param {CanvasRenderingContext2D} ctx */
-    draw(ctx) {
+    draw(ctx, color) {
         ctx.beginPath();
 
         ctx.moveTo(this.polygon.points[0].x, this.polygon.points[0].y);
         for(let i = 1; i < this.polygon.points.length; i++){
             ctx.lineTo(this.polygon.points[i].x, this.polygon.points[i].y);
         }
-        ctx.fillStyle = this.isCrashed ? 'red' : 'black';
+        ctx.lineTo(this.polygon.points[0].x, this.polygon.points[0].y);
+        ctx.lineWidth = 1;
+        ctx.fillStyle = this.isCrashed ? "gray" : color;
+        ctx.strokeStyle = "black"
+        ctx.stroke();
         ctx.fill();
 
-        this.sensor.draw(ctx);
+        this.sensor?.draw(ctx);
     }
 }
 

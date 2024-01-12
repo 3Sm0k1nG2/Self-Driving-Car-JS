@@ -1,11 +1,21 @@
+import { CONTROL_TYPE_KEYS, CONTROL_TYPE_DUMMY } from "./consts.js";
+
 class Controls {
-    constructor() {
+    /** @param {CONTROL_TYPE_KEYS | CONTROL_TYPE_DUMMY} controlType */
+    constructor(controlType) {
         this.forward = false;
         this.reverse = false;
         this.left = false;
         this.right = false;
 
-        this.#addKeyboardListeners();
+        switch (controlType) {
+            case CONTROL_TYPE_KEYS:
+                this.#addKeyboardListeners();
+                break;
+            case CONTROL_TYPE_DUMMY:
+                this.forward = true;
+                break;
+        }
     }
 
     #addKeyboardListeners() {
@@ -30,23 +40,23 @@ class Controls {
 
         document.addEventListener('keydown', (e) => {
             const key = e.key.toLowerCase();
-            
+
             const found = mapping.find(m => m.eventKeysLowerCased.includes(key));
-            if(!found){
+            if (!found) {
                 return;
             }
-            
+
             this[found.controlKey] = true;
         })
 
         document.addEventListener('keyup', (e) => {
             const key = e.key.toLowerCase();
-            
+
             const found = mapping.find(m => m.eventKeysLowerCased.includes(key));
-            if(!found){
+            if (!found) {
                 return;
             }
-            
+
             this[found.controlKey] = false;
         })
     }

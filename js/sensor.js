@@ -99,14 +99,17 @@ class Sensor {
         return touches.length ? touches.reduce((prev, curr) => prev < curr ? prev : curr) : null;
     }
 
-    /** @param {Border[]} roadBorders */
-    update(roadBorders) {
+    /** @param {Border[]} borders */
+    update(borders) {
         this.#castRays();
 
         this.readings.length = 0;
         for(let ray of this.rays){
             this.readings.push(
-                this.#getClosestReading(ray, roadBorders)
+                this.#getClosestReading(
+                    ray,
+                    borders
+                )
             );
         }
     }
