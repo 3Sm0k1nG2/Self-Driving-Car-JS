@@ -109,7 +109,6 @@ class Sensor {
                 this.#getClosestReading(ray, roadBorders)
             );
         }
-        console.log(this.readings);
     }
 
     /**

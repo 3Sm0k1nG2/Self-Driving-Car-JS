@@ -9,7 +9,6 @@ canvas.width = 200;
 const context = canvas.getContext("2d");
 const road = new Road(canvas.width/2, canvas.width*0.9, 4);
 const car = new Car(road.getLaneCenterByIndex(Math.floor(road.laneCount/2)), 100, 30, 50);
-car.draw(context);
 
 updateTick();
 

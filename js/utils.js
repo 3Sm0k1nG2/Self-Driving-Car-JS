@@ -1,5 +1,7 @@
+import Border from "./border.js";
 import Intersection from "./intersection.js";
 import Point from "./point.js";
+import Polygon from "./polygon.js";
 
 /**
  * Linear interpolation
@@ -49,4 +51,31 @@ export function getIntersection(A, B, C, D) {
         lerp(A.y, B.y, t),
         t
     );
+}
+
+/**
+ * @param {Polygon} polyA 
+ * @param {Polygon} polyB 
+ */
+export function getPolygonIntersection(polyA, polyB) {
+    let polyABorder;
+    let polyBBorder;
+    let point;
+
+    for(polyABorder of polyA.borders) {
+        for(polyBBorder of polyB.borders) {
+            point = getIntersection(
+                polyABorder.p1,
+                polyABorder.p2,
+                polyBBorder.p1,
+                polyBBorder.p2
+            );
+            
+            if(point){
+                return point;
+            }
+        }
+    }
+
+    return null;
 }
