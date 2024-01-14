@@ -1,7 +1,7 @@
-import { CONTROL_TYPE_KEYS, CONTROL_TYPE_DUMMY } from "./consts.js";
+import { CONTROL_TYPE_KEYS, CONTROL_TYPE_DUMMY, CONTROL_TYPE_AI } from "./consts.js";
 
 class Controls {
-    /** @param {CONTROL_TYPE_KEYS | CONTROL_TYPE_DUMMY} controlType */
+    /** @param {CONTROL_TYPE_KEYS | CONTROL_TYPE_DUMMY | CONTROL_TYPE_AI } controlType */
     constructor(controlType) {
         this.forward = false;
         this.reverse = false;
@@ -10,6 +10,7 @@ class Controls {
 
         switch (controlType) {
             case CONTROL_TYPE_KEYS:
+            case CONTROL_TYPE_AI:
                 this.#addKeyboardListeners();
                 break;
             case CONTROL_TYPE_DUMMY:

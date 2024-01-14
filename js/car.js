@@ -4,7 +4,8 @@ import Point from "./point.js";
 import Polygon from "./polygon.js";
 import Sensor from "./sensor.js";
 import { getPolygonIntersection } from "./utils.js";
-import { CONTROL_TYPE_KEYS, CONTROL_TYPE_DUMMY } from "./consts.js";
+import { CONTROL_TYPE_KEYS, CONTROL_TYPE_DUMMY, CONTROL_TYPE_AI } from "./consts.js";
+import NeuralNetwork from "./ai/neural-network/network.js"
 
 class Car {
     /**
@@ -12,7 +13,7 @@ class Car {
      * @param {number} y 
      * @param {number} width 
      * @param {number} height
-     * @param {CONTROL_TYPE_KEYS | CONTROL_TYPE_DUMMY} controlType
+     * @param {CONTROL_TYPE_KEYS | CONTROL_TYPE_DUMMY | CONTROL_TYPE_AI} controlType
      * @param {number} maxSpeed
      */
     constructor(x, y, width, height, controlType, maxSpeed = 3) {
@@ -29,8 +30,13 @@ class Car {
         this.friction = 0.05;
         this.angle = 0;
 
-        if(controlType === CONTROL_TYPE_KEYS) {
+        this.useBrain = controlType === CONTROL_TYPE_AI;
+
+        if(controlType !== CONTROL_TYPE_DUMMY) {
             this.sensor = new Sensor(this);
+            this.brain = new NeuralNetwork(
+                [this.sensor.rayCount, 6, 4]
+            );
         }
         this.polygon = new Polygon();
 
@@ -129,7 +135,26 @@ class Car {
             this.#assessDamage(borders);
         }
 
-        this.sensor?.update(borders);
+        if(this.sensor){
+            this.sensor.update(borders);
+            
+            const offsets = this.sensor.readings
+                .map(s => s === null ? 0 : 1-s.offset);
+
+            const outputs = NeuralNetwork.feedForward(
+                offsets,
+                this.brain
+            )
+
+                console.log(this.brain);
+
+            if(this.useBrain) {
+                this.controls.forward = outputs[0];
+                this.controls.left = outputs[1];
+                this.controls.right = outputs[2];
+                this.controls.reverse = outputs[3];
+            }
+        }
     }
 
     /** @param {CanvasRenderingContext2D} ctx */
