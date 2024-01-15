@@ -5,7 +5,7 @@ import Polygon from "./polygon.js";
 import Sensor from "./sensor.js";
 import { getPolygonIntersection } from "./utils.js";
 import { CONTROL_TYPE_KEYS, CONTROL_TYPE_DUMMY, CONTROL_TYPE_AI } from "./consts.js";
-import NeuralNetwork from "./ai/neural-network/network.js"
+import NeuralNetwork from "../../ai/neural-network/network.js"
 
 class Car {
     /**
