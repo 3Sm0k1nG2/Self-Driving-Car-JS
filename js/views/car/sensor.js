@@ -169,7 +169,7 @@ class Sensor {
             }
 
             this.#drawUnobstructedRay(ctx, ray.start, end)
-
+            
             this.#drawObstructedRay(ctx, end, ray.end);
         }
     }

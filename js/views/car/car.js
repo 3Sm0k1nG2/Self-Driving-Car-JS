@@ -6,6 +6,7 @@ import Sensor from "./sensor.js";
 import { getPolygonIntersection } from "./utils.js";
 import { CONTROL_TYPE_KEYS, CONTROL_TYPE_DUMMY, CONTROL_TYPE_AI } from "./consts.js";
 import NeuralNetwork from "../../ai/neural-network/network.js"
+import NeuralNetworkManager from "../../ai/neural-network/neuralNetworkManager.js";
 
 class Car {
     /**
@@ -127,8 +128,11 @@ class Car {
         this.isCrashed = false;
     }
 
-    /** @param {Border[]} borders */
-    update(borders) {
+    /** 
+     * @param {Border[]} borders
+     * @param {NeuralNetworkManager} neuralNetworkManager
+     */
+    #updateSensorsWhenCrashed(borders, neuralNetworkManager) {
         if(!this.isCrashed){
             this.#move();
             this.#updatePolygon();
@@ -141,12 +145,7 @@ class Car {
             const offsets = this.sensor.readings
                 .map(s => s === null ? 0 : 1-s.offset);
 
-            const outputs = NeuralNetwork.feedForward(
-                offsets,
-                this.brain
-            )
-
-                console.log(this.brain);
+            const outputs = neuralNetworkManager.feedForwardNetwork(this.brain, offsets);
 
             if(this.useBrain) {
                 this.controls.forward = outputs[0];
@@ -157,8 +156,50 @@ class Car {
         }
     }
 
-    /** @param {CanvasRenderingContext2D} ctx */
-    draw(ctx, color) {
+    /** 
+     * @param {Border[]} borders
+     * @param {NeuralNetworkManager} neuralNetworkManager
+     */
+    #updateSensorsIfNotCrashed(borders, neuralNetworkManager) {
+        if(this.isCrashed) {
+            return;
+        }
+
+        this.#move();
+        this.#updatePolygon();
+        this.#assessDamage(borders);
+
+        if(this.sensor){
+            this.sensor.update(borders);
+            
+            const offsets = this.sensor.readings
+                .map(s => s === null ? 0 : 1-s.offset);
+
+            const outputs = neuralNetworkManager.feedForwardNetwork(this.brain, offsets);
+
+            if(this.useBrain) {
+                this.controls.forward = outputs[0];
+                this.controls.left = outputs[1];
+                this.controls.right = outputs[2];
+                this.controls.reverse = outputs[3];
+            }
+        }
+    }
+
+    /** 
+     * @param {Border[]} borders
+     * @param {NeuralNetworkManager} neuralNetworkManager
+     */
+    update(borders, neuralNetworkManager) {
+        this.#updateSensorsIfNotCrashed(borders, neuralNetworkManager);
+    }
+
+    /** 
+     * @param {CanvasRenderingContext2D} ctx
+     * @param {string} color
+     * @param {boolean} drawSensor
+     */
+    draw(ctx, color, drawSensor) {
         ctx.beginPath();
 
         ctx.moveTo(this.polygon.points[0].x, this.polygon.points[0].y);
@@ -172,7 +213,9 @@ class Car {
         ctx.stroke();
         ctx.fill();
 
-        this.sensor?.draw(ctx);
+        if(drawSensor){
+            this.sensor?.draw(ctx);
+        }
     }
 }
 
