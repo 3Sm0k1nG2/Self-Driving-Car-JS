@@ -40,7 +40,7 @@ class Visualizer {
                 levelTop + levelHeight,
                 left + width
             ),
-            ['⇧', '⇦', '⇩', '⇨']
+            ['⇧', '⇦', '⇨', '⇩']
         );
 
         for(let i = network.levels.length - 2; i >= 0; i--) {
