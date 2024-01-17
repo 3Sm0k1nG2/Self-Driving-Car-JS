@@ -15,3 +15,12 @@ Sensor doesn't read closest intersection.
 **DATE FIXED ON** - ***17th January 2024***  
 
 ---
+
+#### [ISSUED] #3
+**DESCRIPTION**  
+Drawn network not matching car brain actions.
+
+**DATE ISSUED ON** - ***17th January 2024***  
+**DATE FIXED ON** - ***NOT YET***  
+
+---
