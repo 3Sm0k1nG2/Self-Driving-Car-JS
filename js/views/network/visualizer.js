@@ -4,7 +4,7 @@ import Pos from "./pos.js"
 import Node from "./node.js"
 import Offset from "./offset.js"
 import Connection from "./connection.js"
-import RGBA from "./rgba.js"
+import RGBA from "../common/rgba.js"
 import BiasNode from "./biasNode.js"
 import { lerp } from "../car/utils.js";
 

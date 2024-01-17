@@ -7,6 +7,7 @@ import OfflineStorage from "./offlineStorage.js";
 import AIManager from "./AIManager.js";
 import NeuralNetworkManager from "./ai/neural-network/neuralNetworkManager.js";
 import TrafficGenerator from "./trafficGenerator.js";
+import ColorGenerator from "./colorGenerator.js";
 
 /** @type {HTMLCanvasElement} */
 const carCanvas = document.getElementById('carCanvas');
@@ -26,8 +27,8 @@ const aiManager = new AIManager(
     new OfflineStorage(localStorage)
 );
 console.dir(aiManager);
-const carN = 150;
-const mutator = 0.1;
+const carN = 100;
+const mutator = 0.25;
 
 const road = new Road(
     carCanvas.width / 2,
@@ -36,8 +37,11 @@ const road = new Road(
 );
 const cars = generateCars(carN);
 
-const traffic = new TrafficGenerator(road, cars[0].height)
-    .generateSequantically(
+const traffic = new TrafficGenerator(
+    road,
+    cars[0].height,
+    // new ColorGenerator()
+).generateSequantically(
         [],
         [1, 2, 3],
         [0, 4],
@@ -98,13 +102,13 @@ function animate(time) {
     carContext.translate(0, -bestCar.y + carCanvas.height * 0.7);
 
     road.draw(carContext);
-    traffic.forEach(v => v.draw(carContext, 'red'));
+    traffic.forEach(v => v.draw(carContext));
     carContext.globalAlpha = 0.2;
     if (previewAll) {
-        cars.forEach(car => car.draw(carContext, 'blue'));
+        cars.forEach(car => car.draw(carContext));
     }
     carContext.globalAlpha = 1;
-    bestCar.draw(carContext, "blue", true);
+    bestCar.draw(carContext, true);
 
     carContext.restore();
 
