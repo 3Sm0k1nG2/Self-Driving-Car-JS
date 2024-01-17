@@ -7,11 +7,11 @@ After driving for 5 seconds, app starts lagging.
 
 ---
 
-#### [ISSUED] #2
+#### [FIXED] #2
 **DESCRIPTION**  
-Rightmost sensor detecting wrong side of dummy car
+Sensor doesn't read closest intersection.
 
 **DATE ISSUED ON** - ***16th January 2024***  
-**DATE FIXED ON** - ***NOT YET***  
+**DATE FIXED ON** - ***17th January 2024***  
 
 ---

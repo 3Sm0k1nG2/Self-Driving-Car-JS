@@ -96,7 +96,7 @@ class Sensor {
             touches.push(touch);
         }
 
-        return touches.length ? touches.reduce((prev, curr) => prev < curr ? prev : curr) : null;
+        return touches.length ? touches.reduce((prev, curr) => prev.offset < curr.offset ? prev : curr) : null;
     }
 
     /** @param {Border[]} borders */
