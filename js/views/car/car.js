@@ -4,42 +4,65 @@ import Point from "./point.js";
 import Polygon from "./polygon.js";
 import Sensor from "./sensor.js";
 import { getPolygonIntersection } from "./utils.js";
-import { CONTROL_TYPE_KEYS, CONTROL_TYPE_DUMMY, CONTROL_TYPE_AI } from "./consts.js";
+import { CONTROL_TYPE_KEYS, CONTROL_TYPE_DUMMY, CONTROL_TYPE_AI } from "../../consts.js";
 import NeuralNetwork from "../../ai/neural-network/network.js"
 import NeuralNetworkManager from "../../ai/neural-network/neuralNetworkManager.js";
+import EventListenerModule from "../../common/eventListenerModule.js";
+import MyEvent from "../../common/myEvent.js"
+import { carEventTypes } from "./carEvents.js";
+
+class CarParams {
+    constructor() {
+        /** @type {EventListenerModule} */
+        this.eventListenerModule;
+
+        /** @type {number} */
+        this.x 
+        /** @type {number} */
+        this.y 
+        
+        /** @type {number} */
+        this.width 
+        /** @type {number} */
+        this.height
+        
+        /** @type {number} */
+        this.maxSpeed  
+        
+        /** @type {CONTROL_TYPE_KEYS | CONTROL_TYPE_DUMMY | CONTROL_TYPE_AI} */
+        this.controlType
+
+        /** @type {string} */
+        this.color;
+    }
+}
 
 class Car {
-    /**
-     * @param {number} x 
-     * @param {number} y 
-     * @param {number} width 
-     * @param {number} height
-     * @param {CONTROL_TYPE_KEYS | CONTROL_TYPE_DUMMY | CONTROL_TYPE_AI} controlType
-     * @param {number} maxSpeed
-     */
-    constructor(
-        x, y,
-        width, height,
-        controlType,
-        maxSpeed = 3,
-        color = "blue"
-    ) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
+    #eventListenerModule;
 
-        this.controls = new Controls(controlType);
+    /** @param {CarParams} params */
+    constructor(params) {
+        this.#eventListenerModule = params.eventListenerModule;
+
+        this.x = params.x;
+        this.y = params.y;
+        this.width = params.width;
+        this.height = params.height;
+
+        this.controls = new Controls(params.controlType);
+        this.controlType = params.controlType;
+
+        this.color = params.color;
 
         this.speed = 0;
         this.acceleration = 0.2;
-        this.maxSpeed = maxSpeed;
+        this.maxSpeed = params.maxSpeed;
         this.friction = 0.05;
         this.angle = 0;
 
-        this.useBrain = controlType === CONTROL_TYPE_AI;
+        this.useBrain = this.controlType === CONTROL_TYPE_AI;
 
-        if(controlType !== CONTROL_TYPE_DUMMY) {
+        if(this.controlType !== CONTROL_TYPE_DUMMY) {
             this.sensor = new Sensor(this);
             this.brain = new NeuralNetwork(
                 [this.sensor.rayCount, 6, 4]
@@ -56,18 +79,39 @@ class Car {
         this.img.src = "../../car.svg"
 
         this.mask = document.createElement('canvas');
-        this.mask.width = width;
-        this.mask.height = height;
+        this.mask.width = this.width;
+        this.mask.height = this.height;
 
         const maskCtx = this.mask.getContext("2d");
         this.img.onload = () => {
-            maskCtx.fillStyle = color;
+            maskCtx.fillStyle = this.color;
             maskCtx.rect(0, 0, this.width, this.height);
             maskCtx.fill();
 
             maskCtx.globalCompositeOperation = "destination-atop";
             maskCtx.drawImage(this.img, 0, 0, this.width, this.height);
         }
+    }
+
+    /** 
+     * @param {keyof carEventTypes} eventName
+     * @param {(event?: MyEvent<Car>) => void} callback
+     */
+    addEventListener(eventName, callback) {
+        this.#eventListenerModule.addEventListener(
+            eventName,
+            callback.bind(null, new MyEvent(this))
+        );
+    }
+
+    /** @param {keyof carEventTypes} eventName */
+    removeEventListeners(eventName) {
+        this.#eventListenerModule.removeEventListeners(eventName);
+    }
+
+    /** @param {keyof carEventTypes} eventName */
+    dispatchEvent(eventName) {
+        this.#eventListenerModule.dispatchEvent(eventName);
     }
 
     #move() {
@@ -144,6 +188,8 @@ class Car {
                 )
             ) {
                 this.isCrashed = true;
+                this.dispatchEvent("oncrash");
+
                 return;
             }
         }
@@ -155,13 +201,7 @@ class Car {
      * @param {Border[]} borders
      * @param {NeuralNetworkManager} neuralNetworkManager
      */
-    #updateSensorsWhenCrashed(borders, neuralNetworkManager) {
-        if(!this.isCrashed){
-            this.#move();
-            this.#updatePolygon();
-            this.#assessDamage(borders);
-        }
-
+    #updateSensorsEvenIfCrashed(borders, neuralNetworkManager) {
         if(this.sensor){
             this.sensor.update(borders);
             
@@ -176,6 +216,12 @@ class Car {
                 this.controls.right = outputs[2];
                 this.controls.reverse = outputs[3];
             }
+        }
+        
+        if(!this.isCrashed){
+            this.#move();
+            this.#updatePolygon();
+            this.#assessDamage(borders);
         }
     }
 
@@ -188,10 +234,6 @@ class Car {
             return;
         }
 
-        this.#move();
-        this.#updatePolygon();
-        this.#assessDamage(borders);
-
         if(this.sensor){
             this.sensor.update(borders);
             
@@ -207,6 +249,10 @@ class Car {
                 this.controls.reverse = outputs[3];
             }
         }
+
+        this.#move();
+        this.#updatePolygon();
+        this.#assessDamage(borders);
     }
 
     /** 

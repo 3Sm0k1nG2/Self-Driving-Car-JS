@@ -1,4 +1,4 @@
-import { CONTROL_TYPE_KEYS, CONTROL_TYPE_DUMMY, CONTROL_TYPE_AI } from "./consts.js";
+import { CONTROL_TYPE_KEYS, CONTROL_TYPE_DUMMY, CONTROL_TYPE_AI } from "../../consts.js";
 
 class Controls {
     /** @param {CONTROL_TYPE_KEYS | CONTROL_TYPE_DUMMY | CONTROL_TYPE_AI } controlType */

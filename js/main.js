@@ -1,13 +1,14 @@
 import Car from "./views/car/car.js";
-import { CONTROL_TYPE_AI, CONTROL_TYPE_DUMMY, CONTROL_TYPE_KEYS } from "./views/car/consts.js";
+import { CONTROL_TYPE_AI } from "./consts.js";
 import Road from "./views/car/road.js";
 import Visualizer from "./views/network/visualizer.js";
-import NeuralNetwork from "./ai/neural-network/network.js";
 import OfflineStorage from "./offlineStorage.js";
 import AIManager from "./AIManager.js";
 import NeuralNetworkManager from "./ai/neural-network/neuralNetworkManager.js";
 import TrafficGenerator from "./trafficGenerator.js";
-import ColorGenerator from "./colorGenerator.js";
+import EventListenerModuleBuilder from "./common/eventListenerModuleBuilder.js"
+import { carEventTypes } from "./views/car/carEvents.js";
+import CarAITrainer from "./aiTrainer/car/carAITrainer.js";
 
 /** @type {HTMLCanvasElement} */
 const carCanvas = document.getElementById('carCanvas');
@@ -26,16 +27,21 @@ const aiManager = new AIManager(
     new NeuralNetworkManager(),
     new OfflineStorage(localStorage)
 );
-console.dir(aiManager);
-const carN = 100;
-const mutator = 0.25;
+
+// console.dir(aiManager);
+const carN = 150;
+const mutator = 0.5;
 
 const road = new Road(
     carCanvas.width / 2,
     carCanvas.width * 0.9,
     5
 );
-const cars = generateCars(carN);
+
+const eventListenerModuleBuilder = new EventListenerModuleBuilder();
+eventListenerModuleBuilder.registerEvents(...Object.keys(carEventTypes));
+const cars = generateCars(eventListenerModuleBuilder, carN);
+const carAiTrainer = new CarAITrainer(cars);
 
 const traffic = new TrafficGenerator(
     road,
@@ -43,9 +49,10 @@ const traffic = new TrafficGenerator(
     // new ColorGenerator()
 ).generateSequantically(
         [],
-        [1, 2, 3],
+        [0, 2, 4],
+        [1, /*2,*/ 3],
         [0, 4],
-        [1, 3],
+        [1, 2, 3],
         [0, 2, 4],
         [0, 1, 3, 4],
         [0, 4],
@@ -80,10 +87,12 @@ updateTick();
 /** @param {DOMHighResTimeStamp} time */
 function updateTick(time) {
     if (!pause) {
-        cars.forEach(car => car.update([...road.borders, ...traffic.map(v => v.polygon.borders).reduce((prev, curr) => [...prev, ...curr])], aiManager.neuralNetworkManager));
+        if(carAiTrainer.subjects.length){
+            carAiTrainer.subjects.forEach(car => car.update([...road.borders, ...traffic.map(v => v.polygon.borders).reduce((prev, curr) => [...prev, ...curr])], aiManager.neuralNetworkManager));
+        }
         traffic.forEach(v => v.update([...road.borders], aiManager.neuralNetworkManager));
 
-        bestCar = aiManager.findBestCar(cars);
+        bestCar = aiManager.findBestCar(carAiTrainer.subjects);
 
         animate(time);
     }
@@ -99,28 +108,45 @@ function animate(time) {
     carContext.reset();
 
     carContext.save();
-    carContext.translate(0, -bestCar.y + carCanvas.height * 0.7);
+    if(bestCar){
+        carContext.translate(0, -bestCar.y + carCanvas.height * 0.7);
+    }
 
     road.draw(carContext);
     traffic.forEach(v => v.draw(carContext));
     carContext.globalAlpha = 0.2;
-    if (previewAll) {
-        cars.forEach(car => car.draw(carContext));
+    if (previewAll && carAiTrainer.subjects.length) {
+        carAiTrainer.subjects.forEach(car => car.draw(carContext));
     }
     carContext.globalAlpha = 1;
-    bestCar.draw(carContext, true);
+    bestCar?.draw(carContext, true);
 
     carContext.restore();
 
     networkContext.lineDashOffset = -time * 0.01;
-    visualizer.drawNetwork(networkContext, bestCar.brain);
+    if(bestCar){
+        visualizer.drawNetwork(networkContext, bestCar.brain);
+    }
 }
 
-function generateCars(count) {
+/**
+ * @param {EventListenerModuleBuilder} eventListenerModuleBuilder 
+ * @param {number} count 
+ */
+function generateCars(eventListenerModuleBuilder, count) {
     const cars = [];
 
     for (let i = 0; i < count; i++) {
-        cars.push(new Car(road.getLaneCenterByIndex(Math.floor(road.laneCount / 2)), 100, 30, 50, CONTROL_TYPE_AI))
+        cars.push(new Car({
+            eventListenerModule: eventListenerModuleBuilder.build(),
+            x: road.getLaneCenterByIndex(Math.floor(road.laneCount / 2)),
+            y: 100,
+            width: 30,
+            height: 50,
+            controlType: CONTROL_TYPE_AI,
+            color: "blue",
+            maxSpeed: 3,
+        }))
     }
 
     return cars;

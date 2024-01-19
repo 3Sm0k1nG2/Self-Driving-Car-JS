@@ -1,5 +1,5 @@
 import Car from "./views/car/car.js";
-import { CONTROL_TYPE_DUMMY } from "./views/car/consts.js";
+import { CONTROL_TYPE_DUMMY } from "./consts.js";
 import Road from "./views/car/road.js";
 import ColorGenerator from "./colorGenerator.js"
 
@@ -22,15 +22,15 @@ class TrafficGenerator {
      * @returns 
      */
     #generateCar(levelHeight, laneIndex, color = undefined) {
-        return new Car(
-            this.road.getLaneCenterByIndex(laneIndex),
-            levelHeight,
-            30,
-            50,
-            CONTROL_TYPE_DUMMY,
-            2,
-            color ?? this.colorGenerator?.random() ?? "red"
-        )
+        return new Car({
+            x: this.road.getLaneCenterByIndex(laneIndex),
+            y: levelHeight,
+            width: 30,
+            height: 50,
+            controlType: CONTROL_TYPE_DUMMY,
+            maxSpeed: 2,
+            color: color ?? this.colorGenerator?.random() ?? "red"
+        });
     }
 
     /** @param {...[laneHeightLevel: number, laneIndex: number]} args */
